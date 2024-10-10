@@ -22,9 +22,21 @@ This is a C# app and only supports ETS6 for now.
 
 `dotnet tests`
 
-## Install Tool `etsdevtest`
+## Create MSI for `etsdevtest`
 
-`dotnet tool install`
+Create msi:
+
+`dotnet build -c Release`
+
+msi is located in *./installer/DevTestToolCli.msi*.
+After installation, it should be possible to run:
+
+```
+etsdevtest -h
+```
+
+> Be aware, currently installing multiple versions will lead to
+> multiple entries in the program list.
 
 ## Commands
 
