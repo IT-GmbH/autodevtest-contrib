@@ -1,7 +1,9 @@
 using System;
 using System.CommandLine;
 using System.CommandLine.Binding;
+using System.CommandLine.Builder;
 using System.CommandLine.IO;
+using System.CommandLine.Parsing;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,6 +14,12 @@ public class CommandProcessor
     public const int kUnknownError = 1;
     public const int kNotSupportedError = 15;
     public const int kIgnoreDone = 100;
+
+    public static int ProcessException(Exception ex)
+    {
+        Console.WriteLine($"Error {ex.Message}");
+        return kIgnoreDone;
+    }
 
     public static async Task<int> NotSupported()
     {
@@ -64,7 +72,18 @@ public class CommandProcessor
 
     public async Task<int> Process(string aArgs)
     {
-        var error = await mRootCommand.InvokeAsync(aArgs, mConsole);
+        int error = 0;
+        try
+        {
+            error = await mRootCommand.InvokeAsync(aArgs, mConsole);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            WriteError(ex.Message);
+        }
+
+
         var result = mRootCommand.Parse(aArgs);
 
         if (result.Errors.Count > 0)

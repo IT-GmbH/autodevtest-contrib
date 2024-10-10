@@ -17,7 +17,11 @@ public class ShellCommand : CommandProcessor
         while (IsRunning)
         {
             Console.Write("> ");
-            await Process(Console.ReadLine());
+            var cmd = Console.ReadLine();
+            if (cmd != string.Empty)
+            {
+                await Process(cmd);
+            }
         }
         return CommandProcessor.kIgnoreDone;
     }
@@ -41,6 +45,7 @@ public class ShellCommand : CommandProcessor
     public ShellCommand(IEts6Factory aEtsFactory, IConfig aConfig, AppInstance aApp, CustomConsole aConsole = null) : base(aEtsFactory, aConfig, aApp, aConsole)
     {
         mRootCommand.Add(new ExitCommand(this));
+        mRootCommand.Add(new HelpCommand(mRootCommand));
     }
 
 }
