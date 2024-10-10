@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etsdevtest.cli", "etsdevtes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etsdevtest.cli.tests", "etsdevtest.cli.tests\etsdevtest.cli.tests.csproj", "{00A7FB5F-17F4-4BE4-A39A-9D8BBEACF5D7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "installer", "installer\installer.csproj", "{435B9658-C98C-4381-8F4C-2B2CD90B9666}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{00A7FB5F-17F4-4BE4-A39A-9D8BBEACF5D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00A7FB5F-17F4-4BE4-A39A-9D8BBEACF5D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{00A7FB5F-17F4-4BE4-A39A-9D8BBEACF5D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{435B9658-C98C-4381-8F4C-2B2CD90B9666}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{435B9658-C98C-4381-8F4C-2B2CD90B9666}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{435B9658-C98C-4381-8F4C-2B2CD90B9666}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{435B9658-C98C-4381-8F4C-2B2CD90B9666}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
