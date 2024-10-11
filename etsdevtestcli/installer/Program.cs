@@ -27,7 +27,7 @@ internal class Program
         var mainExe = new File($"{binaryPath}\\etsdevtest.cli.exe");
         mainExe.TargetFileName = "etsdevtest.exe";
 
-        List<WixEntity> Files = new List<WixEntity>{
+        List<WixEntity> Entities = new List<WixEntity>{
             mainExe
         };
         foreach (var file in Directory.GetFiles(binaryPath))
@@ -35,15 +35,13 @@ internal class Program
             var path = file.PathGetFullPath();
             if (path.EndsWith(".dll"))
             {
-                Files.Add(new File(path));
+                Entities.Add(new File(path));
+                Console.WriteLine("Added File {0}", path);
             }
         }
 
-        foreach (var file in Files)
-        {
-            Console.WriteLine("Added File {0}", file.Name);
-        }
-        var installDir = new Dir(@"%ProgramFiles%\itgmbh\contrib\devtesttoolcli", Files.ToArray());
+        Entities.Add(new DirPermission("Everyone", GenericPermission.All));
+        var installDir = new Dir(@"%ProgramFiles%\itgmbh\contrib\devtesttoolcli", Entities.ToArray());
 
         var project =
             new ManagedProject("DevTestToolCli",
