@@ -44,15 +44,28 @@ class DeviceCommand : Command
             this.Add(srcSia);
             var snArg = new SerialnumberArgument(aDefault: true);
             Add(snArg);
-            this.SetHandler((src, sn) =>
+            var pwArg = new Argument<string>("pw", () => null, "password to use, if not provided will not configure password");
+            Add(pwArg);
+            this.SetHandler((src, sn, pw) =>
             {
                 OnlineOperationState state;
+
+                if (pw != null)
+                {
+                    appInstance.SetDeviceCertificate(src, sn, pw);
+                }
+
                 if (sn.Value.Length > 0)
                 {
                     Console.WriteLine($"Resolve serialnumber '{sn.String}'");
                     appInstance.Get().StartLoadNetworkConfiguration(src, sn.Value);
                     state = appInstance.Get().WaitUntilOnlineOperationIsComplete(src, 100000);
                     Console.WriteLine($"Serialnumber resolve state '{state}'");
+                    if (state != OnlineOperationState.Finished)
+                    {
+                        Console.WriteLine("Failed With {0}", appInstance.Get().GetOnlineOperationErrorMessage(src));
+                        return;
+                    }
                 }
                 else
                 {
@@ -63,7 +76,11 @@ class DeviceCommand : Command
 
                 state = appInstance.Get().WaitUntilOnlineOperationIsComplete(src, 100000);
                 Console.WriteLine($"Download state '{state}'");
-            }, srcSia, snArg);
+                if (state != OnlineOperationState.Finished)
+                {
+                    Console.WriteLine("Failed With {0}", appInstance.Get().GetOnlineOperationErrorMessage(src));
+                }
+            }, srcSia, snArg, pwArg);
         }
     }
 
@@ -92,11 +109,7 @@ class DeviceCommand : Command
             Add(snArg);
             var pwArg = new Argument<string>("certificate", "Certificate string (DMC Code or KNX:S:<sn>;P:<pw>)");
             Add(pwArg);
-            this.SetHandler((sia, sn, pw) =>
-            {
-                appInstance.Get().SetDeviceSerialNumber(sia, sn.Value);
-                appInstance.Get().AddRawDeviceCertificate($"KNX:S:{sn.String};P:{pw}");
-            }, srcSia, snArg, pwArg);
+            this.SetHandler(appInstance.SetDeviceCertificate, srcSia, snArg, pwArg);
         }
     }
 

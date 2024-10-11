@@ -15,6 +15,7 @@ public class AppInstance : IDisposable
     IEts mEts6;
     IConfig mConfig;
     string mActiveProject;
+    string mActiveProjectPassword;
 
     public AppInstance(IEts6Factory aEts6Factory, IConfig aConfig)
     {
@@ -43,6 +44,18 @@ public class AppInstance : IDisposable
             Open(mConfig.Get(IConfig.Types.DefaultProject));
         }
         return mApp;
+    }
+
+    public void SetDeviceCertificate(ushort aSia, Serialnumber aSerialnumber, string aPassword)
+    {
+        Get().SetDeviceSerialNumber(aSia, aSerialnumber.Value);
+        Get().AddRawDeviceCertificate($"KNX:S:{aSerialnumber.String};P:{aPassword}".ToUpper());
+    }
+
+    public void Reopen()
+    {
+        Close();
+        Open(mActiveProject, mActiveProjectPassword);
     }
 
     public void Start(string projectName, string password = null, string importFromFile = null, int timeoutMilliseconds = 30000)
@@ -86,6 +99,7 @@ public class AppInstance : IDisposable
         Console.WriteLine("Open project '{0}'", projectName);
         mApp = GetEts().GetOpenProject(projectName);
         mActiveProject = projectName;
+        mActiveProjectPassword = password;
     }
 
     /// <summary>
@@ -100,10 +114,10 @@ public class AppInstance : IDisposable
     {
         if (mEts6 != null)
         {
+            Console.WriteLine("Closeing ETS6");
             mEts6.Dispose();
         }
         mEts6 = null;
         mApp = null;
-        mActiveProject = null;
     }
 }

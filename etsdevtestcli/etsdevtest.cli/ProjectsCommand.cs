@@ -39,6 +39,14 @@ class ProjectCommand : Command
         }
     }
 
+    class RestartCommand : Command
+    {
+        public RestartCommand(AppInstance aAppInstance) : base("reload", "Exit ETS6 and reopens active project")
+        {
+            this.SetHandler(aAppInstance.Reopen);
+        }
+    }
+
     class CloseCommmand : Command
     {
         public CloseCommmand(AppInstance aAppInstance) : base("close", "Close currently running ETS")
@@ -53,5 +61,6 @@ class ProjectCommand : Command
         Add(new StartCommand(aAppInstance, aConfig));
         Add(new OpenCommand(aAppInstance, aConfig));
         Add(new CloseCommmand(aAppInstance));
+        Add(new RestartCommand(aAppInstance));
     }
 }
