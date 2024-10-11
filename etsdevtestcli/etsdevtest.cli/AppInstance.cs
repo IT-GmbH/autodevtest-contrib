@@ -114,7 +114,6 @@ public class AppInstance : IDisposable
     {
         if (mEts6 != null)
         {
-            Console.WriteLine("Closeing ETS6");
             mEts6.Dispose();
         }
         mEts6 = null;

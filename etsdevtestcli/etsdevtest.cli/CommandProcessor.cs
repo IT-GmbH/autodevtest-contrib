@@ -13,6 +13,7 @@ public class CommandProcessor
 {
     public const int kUnknownError = 1;
     public const int kNotSupportedError = 15;
+    public const int kDownloadFailed = 16;
     public const int kIgnoreDone = 100;
 
     public static int ProcessException(Exception ex)
@@ -108,6 +109,9 @@ public class CommandProcessor
                 break;
             case kNotSupportedError:
                 WriteError("Command not supported");
+                break;
+            case kDownloadFailed:
+                WriteError("Download Failed.");
                 break;
             default:
                 WriteError("Command Failed.");

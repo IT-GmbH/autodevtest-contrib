@@ -1,7 +1,9 @@
 
 using System;
 using System.CommandLine;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading.Tasks;
 using Itgmbh.AutoDevTest;
 
 namespace etsdevtest.cli;
@@ -38,8 +40,24 @@ class DeviceCommand : Command
 
     class DownloadCommand : Command
     {
+        AppInstance mAppInstance;
+
+        void ProcessState(ushort aIa, OnlineOperationState aState, string aMessage)
+        {
+            if (aState == OnlineOperationState.Running)
+            {
+                throw new Exception($"{aMessage}, timed out");
+            }
+            if (aState != OnlineOperationState.Finished)
+            {
+                var error = mAppInstance.Get().GetOnlineOperationErrorMessage(aIa);
+                throw new Exception($"{aMessage}, failed with {aState} - {error}");
+            }
+        }
+
         public DownloadCommand(AppInstance appInstance) : base("download", "download device by serialnumber")
         {
+            mAppInstance = appInstance;
             var srcSia = new IndividualAddressArgument("Device identified by sia x.x.x");
             this.Add(srcSia);
             var snArg = new SerialnumberArgument(aDefault: true);
@@ -48,38 +66,42 @@ class DeviceCommand : Command
             Add(pwArg);
             this.SetHandler((src, sn, pw) =>
             {
-                OnlineOperationState state;
-
-                if (pw != null)
+                var error = 0;
+                try
                 {
-                    appInstance.SetDeviceCertificate(src, sn, pw);
-                }
 
-                if (sn.Value.Length > 0)
-                {
-                    Console.WriteLine($"Resolve serialnumber '{sn.String}'");
-                    appInstance.Get().StartLoadNetworkConfiguration(src, sn.Value);
-                    state = appInstance.Get().WaitUntilOnlineOperationIsComplete(src, 100000);
-                    Console.WriteLine($"Serialnumber resolve state '{state}'");
-                    if (state != OnlineOperationState.Finished)
+                    OnlineOperationState state;
+
+                    if (pw != null)
                     {
-                        Console.WriteLine("Failed With {0}", appInstance.Get().GetOnlineOperationErrorMessage(src));
-                        return;
+                        appInstance.SetDeviceCertificate(src, sn, pw);
                     }
-                }
-                else
-                {
-                    Console.WriteLine($"Download file by programming mode");
-                }
 
-                appInstance.Get().StartOnlineOperation(src, OnlineOperationType.DownloadFull);
+                    if (sn.Value.Length > 0)
+                    {
+                        Console.WriteLine($"Resolve serialnumber '{sn.String}'");
+                        appInstance.Get().StartLoadNetworkConfiguration(src, sn.Value);
+                        state = appInstance.Get().WaitUntilOnlineOperationIsComplete(src, 100000);
+                        Console.WriteLine($"Serialnumber resolve state '{state}'");
+                        ProcessState(src, state, "Serialnumber resolving failed");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Download file by programming mode");
+                    }
 
-                state = appInstance.Get().WaitUntilOnlineOperationIsComplete(src, 100000);
-                Console.WriteLine($"Download state '{state}'");
-                if (state != OnlineOperationState.Finished)
-                {
-                    Console.WriteLine("Failed With {0}", appInstance.Get().GetOnlineOperationErrorMessage(src));
+                    appInstance.Get().StartOnlineOperation(src, OnlineOperationType.DownloadFull);
+
+                    state = appInstance.Get().WaitUntilOnlineOperationIsComplete(src, 100000);
+                    Console.WriteLine($"Download state '{state}'");
+                    ProcessState(src, state, "Download failed");
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    error = CommandProcessor.kDownloadFailed;
+                }
+                return Task.FromResult(error);
             }, srcSia, snArg, pwArg);
         }
     }
