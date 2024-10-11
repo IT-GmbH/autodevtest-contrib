@@ -1,6 +1,7 @@
 
 using System;
 using System.CommandLine;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace etsdevtest.cli;
@@ -11,19 +12,60 @@ namespace etsdevtest.cli;
 public class ShellCommand : CommandProcessor
 {
     bool IsRunning = true;
+    bool CancelKeyPressed = false;
+    CancellationTokenSource cancellationTokenSource;
+
+    void PressCancelKey(object sender, ConsoleCancelEventArgs args)
+    {
+        if (cancellationTokenSource != null)
+        {
+            Task.Run(() => cancellationTokenSource.Cancel());
+        }
+
+        if (CancelKeyPressed)
+        {
+            return;
+        }
+
+        CancelKeyPressed = true;
+        Console.WriteLine("\nPress CTRL+C again to exit");
+        args.Cancel = true;
+    }
+
+    private void CancelNotification()
+    {
+        cancellationTokenSource = null;
+    }
 
     public async Task<int> Run()
     {
+        Console.Clear();
+        Console.CancelKeyPress += new ConsoleCancelEventHandler(PressCancelKey);
+
         while (IsRunning)
         {
             Console.Write("> ");
             var cmd = Console.ReadLine();
-            if (cmd != string.Empty)
+            if (cmd == string.Empty)
             {
-                await Process(cmd);
+                CancelKeyPressed = false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(cmd))
+            {
+                // configure cancellation token
+                cancellationTokenSource = new CancellationTokenSource();
+                cancellationTokenSource.Token.Register(CancelNotification);
+                var completionSource = new TaskCompletionSource<object>();
+                cancellationTokenSource.Token.Register(() => completionSource.TrySetCanceled());
+
+                var task = Task.Run(async () => await Process(cmd), cancellationTokenSource.Token);
+
+                await Task.WhenAny(task, completionSource.Task);
+                cancellationTokenSource = null;
             }
         }
-        return CommandProcessor.kIgnoreDone;
+        return kIgnoreDone;
     }
 
     void Exit()

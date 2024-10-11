@@ -51,11 +51,7 @@ public class AppInstance : IDisposable
         {
             throw new Exception("Ets6 already started");
         }
-        if (password == string.Empty)
-        {
-            password = null;
-        }
-        if (password == null)
+        if (password == string.Empty || password == null)
         {
             password = mConfig.Get(IConfig.Types.DefaultProjectPassword, null);
         }
