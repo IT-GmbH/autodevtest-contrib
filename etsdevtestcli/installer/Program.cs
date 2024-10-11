@@ -20,6 +20,7 @@ internal class Program
 
         var env = new EnvironmentVariable(name: "PATH", value: "[INSTALLDIR]");
         env.System = false;
+        env.Part = EnvVarPart.last;
 
         var binaryPath = @"..\etsdevtest.cli\bin\Release\net48";
 
@@ -46,6 +47,7 @@ internal class Program
 
         var project =
             new ManagedProject("DevTestToolCli",
+                new LaunchCondition("This application requires .NET Framework 4.8.1 or later.", "Installed OR WIX_IS_NETFRAMEWORK_481_OR_LATER_INSTALLED"),
                 env,
                 installDir);
 
