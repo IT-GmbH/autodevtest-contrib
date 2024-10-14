@@ -21,6 +21,8 @@ public interface IConfig
 
     public string GetString(Types aKey);
 
+    public string GetConfigFile();
+
     public string Get(Types aKey, string aDefault = null);
 
     public void Set(Types aKey, string aValue);
@@ -33,8 +35,9 @@ public class Config : IConfig
 
     LocalStorage mlocalStorage = null;
     IEts6Factory mEts6Factory;
+    string mConfigStoreFile;
 
-    public static LocalStorage GetDefaultLocalStorage()
+    public LocalStorage GetDefaultLocalStorage()
     {
         var config = new LocalStorageConfiguration();
         var storageFile = Environment.GetEnvironmentVariable("ETSDEVTESTCLI_STORAGE");
@@ -42,7 +45,7 @@ public class Config : IConfig
         {
             config.Filename = storageFile;
         }
-        Console.WriteLine("PATH: {0}", config.Filename);
+        mConfigStoreFile = config.Filename;
         return new LocalStorage(config);
     }
 
@@ -59,6 +62,11 @@ public class Config : IConfig
         mlocalStorage.Load();
         mEts6Factory = aEts6Factory;
         LoadConfig();
+    }
+
+    public string GetConfigFile()
+    {
+        return mConfigStoreFile;
     }
 
     public string GetString(IConfig.Types aValue)
