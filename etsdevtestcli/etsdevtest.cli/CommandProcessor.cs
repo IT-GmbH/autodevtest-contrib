@@ -40,6 +40,7 @@ public class CommandProcessor
         mRootCommand.AddCommand(new StartCommand(mAppInstance, aConfig));
         mRootCommand.AddCommand(new ProjectCommand(aEts6Factory, aConfig, aApp));
         mRootCommand.AddCommand(new DeviceCommand(aApp));
+        mRootCommand.AddCommand(new VersionCommand());
     }
 
     void WriteError(string aErrorMessage)
@@ -83,7 +84,6 @@ public class CommandProcessor
             Console.WriteLine(ex);
             WriteError(ex.Message);
         }
-
 
         var result = mRootCommand.Parse(aArgs);
 

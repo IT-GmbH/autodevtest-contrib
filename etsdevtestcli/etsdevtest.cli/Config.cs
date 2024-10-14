@@ -1,6 +1,7 @@
 using Hanssens.Net;
 using System;
 using System.ComponentModel;
+using System.IO;
 
 namespace etsdevtest.cli;
 
@@ -30,14 +31,30 @@ public interface IConfig
 public class Config : IConfig
 {
 
-    LocalStorage mlocalStorage = new LocalStorage();
+    LocalStorage mlocalStorage = null;
     IEts6Factory mEts6Factory;
+
+    public static LocalStorage GetDefaultLocalStorage()
+    {
+        var config = new LocalStorageConfiguration();
+        var storageFile = Environment.GetEnvironmentVariable("ETSDEVTESTCLI_STORAGE");
+        if (storageFile != null)
+        {
+            config.Filename = storageFile;
+        }
+        Console.WriteLine("PATH: {0}", config.Filename);
+        return new LocalStorage(config);
+    }
 
     public Config(IEts6Factory aEts6Factory, LocalStorage? aLocalStorage = null)
     {
         if (aLocalStorage != null)
         {
             mlocalStorage = aLocalStorage;
+        }
+        else
+        {
+            mlocalStorage = GetDefaultLocalStorage();
         }
         mlocalStorage.Load();
         mEts6Factory = aEts6Factory;
@@ -85,8 +102,16 @@ public class Config : IConfig
 
     void LoadConfig()
     {
-        mEts6Factory.ExecutablePath = Get(IConfig.Types.ExecutablePath);
-        mEts6Factory.ProjectStore = Get(IConfig.Types.ProjectStore);
+        try
+        {
+            mEts6Factory.ExecutablePath = Get(IConfig.Types.ExecutablePath);
+            mEts6Factory.ProjectStore = Get(IConfig.Types.ProjectStore);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            Console.Error.WriteLine("Failed to load configuration, {0}", ex);
+        }
     }
 
     void ProcessSet(IConfig.Types aKey, string aValue)
@@ -94,9 +119,17 @@ public class Config : IConfig
         switch (aKey)
         {
             case IConfig.Types.ProjectStore:
+                if (!File.Exists(aValue))
+                {
+                    throw new ArgumentException($"'{aValue}' is not a file");
+                }
                 mEts6Factory.ProjectStore = aValue;
                 break;
             case IConfig.Types.ExecutablePath:
+                if (!Directory.Exists(aValue))
+                {
+                    throw new ArgumentException($"'{aValue}' is not an directory");
+                }
                 mEts6Factory.ExecutablePath = aValue;
                 break;
         }
@@ -108,8 +141,8 @@ public class Config : IConfig
         {
             return;
         }
-        mlocalStorage.Store(GetString(aKey), aValue);
         ProcessSet(aKey, aValue);
+        mlocalStorage.Store(GetString(aKey), aValue);
         mlocalStorage.Persist();
     }
 

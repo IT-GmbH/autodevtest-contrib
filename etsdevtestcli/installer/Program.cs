@@ -58,10 +58,13 @@ internal class Program
         project.MajorUpgradeStrategy = MajorUpgradeStrategy.Default;
         project.MajorUpgradeStrategy.RemoveExistingProductAfter = Step.InstallInitialize;
 
-        project.Version = new Version(0, 0, 1);
+        project.Version = etsdevtest.cli.VersionCommand.FullVersion();
         project.LicenceFile = "license.rtf";
         project.GUID = new Guid("6fe30b47-1077-43ad-3000-1221ba258555");
+        project.MajorUpgradeStrategy = MajorUpgradeStrategy.Default;
 
-        Compiler.BuildMsi(project, $"setup.v{project.Version}.msi"));
+        Console.WriteLine($"Create version v{project.Version}");
+
+        Compiler.BuildMsi(project, $"setup.v{project.Version}.msi");
     }
 }
