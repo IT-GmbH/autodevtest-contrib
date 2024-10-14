@@ -1,6 +1,7 @@
 
 using System;
 using System.CommandLine;
+using System.Dynamic;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -106,6 +107,29 @@ class DeviceCommand : Command
         }
     }
 
+    class ListCommand : Command
+    {
+        string IAToString(ushort aia)
+        {
+            return $"{aia >> 12}.{(aia >> 8) & 0xf}.{aia & 0xff}";
+        }
+
+        public ListCommand(AppInstance appInstance) : base("list", "Show all available devices")
+        {
+            this.SetHandler(() =>
+            {
+                appInstance.Get();
+                Console.WriteLine("{0,-8} {1,-5} {1,1}", "Sia", "Type", "Name");
+                Console.WriteLine(new string('-', 30));
+                foreach (var sia in appInstance.Get().GetAllDevices())
+                {
+                    var infos = appInstance.Get().GetDeviceInformation(sia, [InfoCommand.Infos.MediumType.ToString(), InfoCommand.Infos.Name.ToString()]);
+                    Console.WriteLine("{0,-8} {1,-5} {2,1}", IAToString(sia), infos[0], infos[1]);
+                }
+            });
+        }
+    }
+
     class SerialnumberCommand : Command
     {
         public SerialnumberCommand(AppInstance appInstance) : base("sn", "set serialnumber of sia")
@@ -135,6 +159,38 @@ class DeviceCommand : Command
         }
     }
 
+    class InfoCommand : Command
+    {
+        public enum Infos
+        {
+            ManufacturerId,
+            HardwareId,
+            ApplicationProgramId,
+            Name,
+            Description,
+            MediumType,
+            Security,
+            SerialNumber
+        }
+
+        public InfoCommand(AppInstance appInstance) : base("info", "retrieve device information")
+        {
+            var iaArg = new IndividualAddressArgument();
+            Add(iaArg);
+            var infoArg = new Argument<Infos>("info", "provide the information to return");
+            Add(infoArg);
+
+            this.SetHandler((ia, info) =>
+            {
+                Console.WriteLine($"Get '{info}' from '{ia}'");
+                foreach (var val in appInstance.Get().GetDeviceInformation(ia, [info.ToString()]))
+                {
+                    Console.WriteLine($"'{val}'");
+                }
+            }, iaArg, infoArg);
+        }
+    }
+
     public DeviceCommand(AppInstance aAppInstance) : base("device", "commands related to manage a device")
     {
         AddCommand(new ParametersCommand(aAppInstance));
@@ -142,6 +198,8 @@ class DeviceCommand : Command
         AddCommand(new DownloadCommand(aAppInstance));
         AddCommand(new CertificateCommand(aAppInstance));
         AddCommand(new SerialnumberCommand(aAppInstance));
+        AddCommand(new ListCommand(aAppInstance));
+        AddCommand(new InfoCommand(aAppInstance));
     }
 
 }
