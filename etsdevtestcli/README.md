@@ -98,3 +98,24 @@ Show parameters of a device via sia `1.0.1`
 > device parameters 1.0.1
 Done
 ```
+
+### Run Commands
+
+The tool provides lazy loading of ETS6, meaning for any 
+command ETS6 will be started when required and stopped after 
+command is executed. To define which ETS6 project and password to use,
+configure `DefaultProject` and `DefaultProjectPassword`:
+
+```
+etsdevtest config set DefaultProject "My Test Project"
+etsdevtest config set DefaultProjectPassword "1234"
+```
+
+After this, any command can be just executed like following:
+
+```
+etsdevtest device list
+```
+
+This command starts ETS6, retrieves all devices from project `DefaultProject`
+and exists ETS6.
