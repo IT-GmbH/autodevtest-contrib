@@ -9,9 +9,11 @@ namespace etsdevtest.cli;
 
 public class CommandProcessor
 {
+    public const int kNoError = 0;
     public const int kUnknownError = 1;
     public const int kNotSupportedError = 15;
     public const int kDownloadFailed = 16;
+    public const int kFailedToStartCommand = 17;
     public const int kIgnoreDone = 100;
 
     public static int ProcessException(Exception ex)
@@ -110,6 +112,9 @@ public class CommandProcessor
                 break;
             case kDownloadFailed:
                 WriteError("Download Failed.");
+                break;
+            case kFailedToStartCommand:
+                WriteError("Failed to start the command.");
                 break;
             default:
                 WriteError("Command Failed.");

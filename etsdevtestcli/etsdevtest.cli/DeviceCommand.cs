@@ -11,6 +11,11 @@ namespace etsdevtest.cli;
 
 class DeviceCommand : Command
 {
+    static Option<int> GetTimeoutOpt(int aDefaultTimeoutInMs)
+    {
+        return new Option<int>(["-t", "--timeout"], () => aDefaultTimeoutInMs, "Provide a timeout in MS to wait");
+    }
+
     class ParametersCommand : Command
     {
         public ParametersCommand(AppInstance appInstance) : base("parameters", "Get active device parameters")
@@ -28,7 +33,7 @@ class DeviceCommand : Command
     {
         public ChangeAddress(AppInstance appInstance) : base("change-address", "change an ia address with another")
         {
-            var srcSia = new IndividualAddressArgument("Device identified by sia x.x.x");
+            var srcSia = new IndividualAddressArgument();
             var dstSia = new Argument<byte>("New line address");
             this.Add(srcSia);
             this.Add(dstSia);
@@ -36,6 +41,26 @@ class DeviceCommand : Command
             {
                 appInstance.Get().ChangeDeviceAddress(src, dst);
             }, srcSia, dstSia);
+        }
+    }
+
+    class SwuCommand : Command
+    {
+        public SwuCommand(AppInstance appInstance) : base("swu", "Start software package update")
+        {
+            var iaArg = new IndividualAddressArgument();
+            Add(iaArg);
+            var fileArg = new Argument<string>("file", "File path to the .knxfwp file");
+            Add(fileArg);
+            this.SetHandler((ia, file) =>
+            {
+                if (!appInstance.Get().StartFirmwareUpdate(ia, file))
+                {
+                    return Task.FromResult(CommandProcessor.kFailedToStartCommand);
+                }
+
+                return Task.FromResult(CommandProcessor.kNoError);
+            }, iaArg, fileArg);
         }
     }
 
@@ -59,13 +84,15 @@ class DeviceCommand : Command
         public DownloadCommand(AppInstance appInstance) : base("download", "download device by serialnumber")
         {
             mAppInstance = appInstance;
-            var srcSia = new IndividualAddressArgument("Device identified by sia x.x.x");
+            var srcSia = new IndividualAddressArgument(aDefault: false);
             this.Add(srcSia);
             var snArg = new SerialnumberArgument(aDefault: true);
             Add(snArg);
             var pwArg = new Argument<string>("pw", () => null, "password to use, if not provided will not configure password");
             Add(pwArg);
-            this.SetHandler((src, sn, pw) =>
+            var optTimeout = GetTimeoutOpt(100000);
+            Add(optTimeout);
+            this.SetHandler((src, sn, pw, timeout) =>
             {
                 var error = 0;
                 try
@@ -82,7 +109,7 @@ class DeviceCommand : Command
                     {
                         Console.WriteLine($"Resolve serialnumber '{sn.String}'");
                         appInstance.Get().StartLoadNetworkConfiguration(src, sn.Value);
-                        state = appInstance.Get().WaitUntilOnlineOperationIsComplete(src, 100000);
+                        state = appInstance.Get().WaitUntilOnlineOperationIsComplete(src, timeout);
                         Console.WriteLine($"Serialnumber resolve state '{state}'");
                         ProcessState(src, state, "Serialnumber resolving failed");
                     }
@@ -93,7 +120,7 @@ class DeviceCommand : Command
 
                     appInstance.Get().StartOnlineOperation(src, OnlineOperationType.DownloadFull);
 
-                    state = appInstance.Get().WaitUntilOnlineOperationIsComplete(src, 100000);
+                    state = appInstance.Get().WaitUntilOnlineOperationIsComplete(src, timeout);
                     Console.WriteLine($"Download state '{state}'");
                     ProcessState(src, state, "Download failed");
                 }
@@ -103,7 +130,7 @@ class DeviceCommand : Command
                     error = CommandProcessor.kDownloadFailed;
                 }
                 return Task.FromResult(error);
-            }, srcSia, snArg, pwArg);
+            }, srcSia, snArg, pwArg, optTimeout);
         }
     }
 
@@ -119,14 +146,31 @@ class DeviceCommand : Command
             this.SetHandler(() =>
             {
                 appInstance.Get();
-                Console.WriteLine("{0,-8} {1,-5} {1,1}", "Sia", "Type", "Name");
+                Console.WriteLine("{0,-8} {1,-3} {2,-13} {3, 0}", "Sia", "Type", "Serialnumber", "(Name)");
                 Console.WriteLine(new string('-', 30));
                 foreach (var sia in appInstance.Get().GetAllDevices())
                 {
-                    var infos = appInstance.Get().GetDeviceInformation(sia, [InfoCommand.Infos.MediumType.ToString(), InfoCommand.Infos.Name.ToString()]);
-                    Console.WriteLine("{0,-8} {1,-5} {2,1}", IAToString(sia), infos[0], infos[1]);
+                    var infos = appInstance.Get().GetDeviceInformation(sia, [InfoCommand.Infos.MediumType.ToString(), InfoCommand.Infos.Name.ToString(), InfoCommand.Infos.SerialNumber.ToString()]);
+                    Console.WriteLine("{0,-8} {1,-3} {2,-13} ({3, 0})", IAToString(sia), infos[0], infos[2], infos[1]);
                 }
             });
+        }
+    }
+
+    class StateCommand : Command
+    {
+        public StateCommand(AppInstance appInstance) : base("state", "Get Current state of device")
+        {
+            var iaArg = new IndividualAddressArgument(aDefault: false);
+            Add(iaArg);
+            var timeoutArg = new Argument<int>("timeout", () => 0, "Provide timeout to wait for completion if running in MS");
+            Add(timeoutArg);
+
+            this.SetHandler((ia, timeout) =>
+            {
+                var state = appInstance.Get().WaitUntilOnlineOperationIsComplete(ia, timeout);
+                Console.WriteLine($"Device {ia} is in state {state}");
+            }, iaArg, timeoutArg);
         }
     }
 
@@ -134,7 +178,7 @@ class DeviceCommand : Command
     {
         public SerialnumberCommand(AppInstance appInstance) : base("sn", "set serialnumber of sia")
         {
-            var srcSia = new IndividualAddressArgument("Device identified by sia x.x.x");
+            var srcSia = new IndividualAddressArgument(aDefault: false);
             Add(srcSia);
             var snArg = new SerialnumberArgument(aDefault: true);
             Add(snArg);
@@ -149,7 +193,7 @@ class DeviceCommand : Command
     {
         public CertificateCommand(AppInstance appInstance) : base("certificate", "configure certificate for device <ia>")
         {
-            var srcSia = new IndividualAddressArgument("Device identified by sia x.x.x");
+            var srcSia = new IndividualAddressArgument(aDefault: false);
             Add(srcSia);
             var snArg = new SerialnumberArgument();
             Add(snArg);
@@ -200,6 +244,8 @@ class DeviceCommand : Command
         AddCommand(new SerialnumberCommand(aAppInstance));
         AddCommand(new ListCommand(aAppInstance));
         AddCommand(new InfoCommand(aAppInstance));
+        AddCommand(new StateCommand(aAppInstance));
+        AddCommand(new SwuCommand(aAppInstance));
     }
 
 }

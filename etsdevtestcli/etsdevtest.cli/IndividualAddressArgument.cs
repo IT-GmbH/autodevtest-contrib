@@ -8,7 +8,7 @@ namespace etsdevtest.cli;
 
 public class IndividualAddressArgument : Argument<ushort>
 {
-    public IndividualAddressArgument(string description = "Individual address in the format x.x.x") : base(
+    public IndividualAddressArgument(string description = "Individual address in the format x.x.x", bool aDefault = false) : base(
         name: "ia",
         description: description,
         parse: result =>
@@ -34,7 +34,7 @@ public class IndividualAddressArgument : Argument<ushort>
             }
             return 0x0000;
         },
-        isDefault: true
+        isDefault: aDefault
     )
     { }
 }

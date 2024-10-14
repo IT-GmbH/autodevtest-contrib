@@ -25,15 +25,25 @@ public class Serialnumber
     public void FromHex(string aSerialnumber)
     {
         byte[] sn = new byte[6];
+        string serialnumber = "";
 
-        if (aSerialnumber.Length != 12)
+        foreach (var ch in aSerialnumber)
+        {
+            // skip any : colons in the hex view
+            if (ch != ':')
+            {
+                serialnumber += ch;
+            }
+        }
+
+        if (serialnumber.Length != 12)
         {
             throw new ArgumentException("Expected 12 characters as serialnumber");
         }
 
-        for (int i = 0; i < aSerialnumber.Length; i += 2)
+        for (int i = 0; i < serialnumber.Length; i += 2)
         {
-            sn[i / 2] = Convert.ToByte(aSerialnumber.Substring(i, 2), 16);
+            sn[i / 2] = Convert.ToByte(serialnumber.Substring(i, 2), 16);
         }
 
         Value = sn;
