@@ -14,6 +14,9 @@ internal class Program
 
     static async Task Main(string[] args)
     {
+        var storageFilePath = @"%AppData%\itgmbh\contrib\devtesttoolcli";
+        var binaryPath = @"..\etsdevtest.cli\bin\Release\net48";
+
         var entity = new WixEntity();
         entity.Id = "Environment";
         entity.Attributes.Add("hello", "world");
@@ -22,7 +25,8 @@ internal class Program
         env.System = false;
         env.Part = EnvVarPart.last;
 
-        var binaryPath = @"..\etsdevtest.cli\bin\Release\net48";
+        var storage = new EnvironmentVariable(name: "ETSDEVTESTCLI_STORAGE", value: $"{storageFilePath}\\.localstorage");
+        storage.System = false;
 
         var mainExe = new File($"{binaryPath}\\etsdevtest.cli.exe");
         mainExe.TargetFileName = "etsdevtest.exe";
@@ -40,14 +44,16 @@ internal class Program
             }
         }
 
-        Entities.Add(new DirPermission("Everyone", GenericPermission.All));
         var installDir = new Dir(@"%ProgramFiles%\itgmbh\contrib\devtesttoolcli", Entities.ToArray());
+        var dataDir = new Dir(storageFilePath);
 
         var project =
             new ManagedProject("DevTestToolCli",
                 new LaunchCondition("This application requires .NET Framework 4.8.1 or later.", "Installed OR WIX_IS_NETFRAMEWORK_481_OR_LATER_INSTALLED"),
                 env,
-                installDir);
+                storage,
+                installDir,
+                dataDir);
 
         project.MajorUpgradeStrategy = MajorUpgradeStrategy.Default;
         project.MajorUpgradeStrategy.RemoveExistingProductAfter = Step.InstallInitialize;
@@ -56,6 +62,6 @@ internal class Program
         project.LicenceFile = "license.rtf";
         project.GUID = new Guid("6fe30b47-1077-43ad-3000-1221ba258555");
 
-        project.BuildMsi();
+        Compiler.BuildMsi(project, $"setup.v{project.Version}.msi"));
     }
 }
