@@ -52,6 +52,7 @@ class ConfigCommand : Command
         {
             this.SetHandler(() =>
             {
+                Console.WriteLine("Config file: {0}", aConfig.GetConfigFile());
                 Console.WriteLine("{0,-15} {1,5}", "Key", "Value");
                 Console.WriteLine(new string('-', 30));
                 foreach (var obj in Enum.GetValues(typeof(IConfig.Types)))
