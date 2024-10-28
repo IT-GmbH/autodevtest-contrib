@@ -127,14 +127,14 @@ public class Config : IConfig
         switch (aKey)
         {
             case IConfig.Types.ProjectStore:
-                if (!File.Exists(aValue))
+                if (!Directory.Exists(aValue))
                 {
                     throw new ArgumentException($"'{aValue}' is not a file");
                 }
                 mEts6Factory.ProjectStore = aValue;
                 break;
             case IConfig.Types.ExecutablePath:
-                if (!Directory.Exists(aValue))
+                if (!File.Exists(aValue))
                 {
                     throw new ArgumentException($"'{aValue}' is not an directory");
                 }
