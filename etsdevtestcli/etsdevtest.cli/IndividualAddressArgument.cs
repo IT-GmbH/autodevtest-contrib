@@ -30,7 +30,7 @@ public class IndividualAddressArgument : Argument<ushort>
                     throw new ArgumentOutOfRangeException("Values must be within the range: x (0-15), y (0-15), z (0-255)");
                 }
 
-                return (ushort)((x << 12) | (y << 8) | z); ;
+                return (ushort)((x << 12) | (y << 8) | z);
             }
             return 0x0000;
         },

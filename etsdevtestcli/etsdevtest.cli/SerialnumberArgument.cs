@@ -14,7 +14,11 @@ public class Serialnumber
         String = aString;
     }
 
-    public string String;
+    public string String
+    {
+        get;
+        set;
+    }
 
     public byte[] Value
     {
@@ -22,7 +26,7 @@ public class Serialnumber
         set;
     }
 
-    public void FromHex(string aSerialnumber)
+    static public byte[] FromHex(string aSerialnumber)
     {
         byte[] sn = new byte[6];
         string serialnumber = "";
@@ -46,7 +50,7 @@ public class Serialnumber
             sn[i / 2] = Convert.ToByte(serialnumber.Substring(i, 2), 16);
         }
 
-        Value = sn;
+        return sn;
     }
 };
 
@@ -54,9 +58,7 @@ public class SerialnumberArgument : Argument<Serialnumber>
 {
     public byte[] StringToHex(string aSerialnumber)
     {
-        Serialnumber serialnumber = new Serialnumber();
-        serialnumber.FromHex(aSerialnumber);
-        return serialnumber.Value;
+        return Serialnumber.FromHex(aSerialnumber);
     }
 
     public SerialnumberArgument(string description = "12 characters serialnumber of the device", bool aDefault = false) : base(
@@ -71,9 +73,9 @@ public class SerialnumberArgument : Argument<Serialnumber>
                     return new Serialnumber(new byte[] { }, "");
                 }
 
-                var sn = new Serialnumber(aString: token.Value.ToUpper());
-                sn.FromHex(token.Value);
-                return sn;
+                return new Serialnumber(
+                    aString: token.Value.ToUpper(),
+                    aValue: Serialnumber.FromHex(token.Value));
             }
             return new Serialnumber(new byte[] { }, "");
         },
