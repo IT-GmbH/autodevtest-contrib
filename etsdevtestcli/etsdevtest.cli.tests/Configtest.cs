@@ -35,7 +35,7 @@ public class ConfigTest : IDisposable
     public void TestSetAndGetConfig()
     {
         // Given
-        string expected = "value";
+        string expected = "./";
 
         // When
         mConfig.Set(IConfig.Types.ProjectStore, expected);
@@ -48,7 +48,7 @@ public class ConfigTest : IDisposable
     [Fact]
     public void TestClear()
     {
-        mConfig.Set(IConfig.Types.ProjectStore, "cool");
+        mConfig.Set(IConfig.Types.ProjectStore, "./");
         mConfig.Clear();
 
         Assert.Equal(String.Empty, mConfig.Get(IConfig.Types.ProjectStore));
