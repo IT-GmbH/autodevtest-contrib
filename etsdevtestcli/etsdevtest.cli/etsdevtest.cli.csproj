@@ -7,7 +7,7 @@
     <LangVersion>preview</LangVersion>
     <SpecificVersion>false</SpecificVersion>
 
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>etsdevtest</ToolCommandName>
   </PropertyGroup>

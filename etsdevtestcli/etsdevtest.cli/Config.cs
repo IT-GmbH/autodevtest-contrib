@@ -17,6 +17,8 @@ public interface IConfig
         DefaultProject,
         [Description("defaultpassword")]
         DefaultProjectPassword,
+        [Description("etsdir")]
+        ETSDirectory
     }
 
     public string GetString(Types aKey);
@@ -129,16 +131,28 @@ public class Config : IConfig
             case IConfig.Types.ProjectStore:
                 if (!Directory.Exists(aValue))
                 {
-                    throw new ArgumentException($"'{aValue}' is not a file");
+                    throw new ArgumentException($"'{aValue}' is not a directory");
                 }
                 mEts6Factory.ProjectStore = aValue;
                 break;
             case IConfig.Types.ExecutablePath:
                 if (!File.Exists(aValue))
                 {
-                    throw new ArgumentException($"'{aValue}' is not an directory");
+                    throw new ArgumentException($"'{aValue}' is not an file");
                 }
                 mEts6Factory.ExecutablePath = aValue;
+                break;
+            case IConfig.Types.ETSDirectory:
+                if (!Directory.Exists(aValue))
+                {
+                    throw new ArgumentException($"'{aValue}' is not a directory");
+                }
+                Set(IConfig.Types.ExecutablePath, $"{aValue}\\ETS6.exe");
+                var projectStore = $"{aValue}\\ProjectStore";
+                if(!Directory.Exists(projectStore)) {
+                    Directory.CreateDirectory(projectStore);
+                }
+                Set(IConfig.Types.ProjectStore, projectStore);
                 break;
         }
     }
