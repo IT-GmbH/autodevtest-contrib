@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType> 
+    <OutputType>Exe</OutputType>
     <TargetFramework>net48</TargetFramework>
     <TargetFrameworks>net48;net8.0</TargetFrameworks>
     <LangVersion>preview</LangVersion>
     <SpecificVersion>false</SpecificVersion>
 
-    <Version>0.0.1</Version>
+    <Version>0.1.2</Version>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>etsdevtest</ToolCommandName>
   </PropertyGroup>

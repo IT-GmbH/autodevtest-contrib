@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using etsdevtest.cli;
-using Itgmbh.AutoDevTest;
 
 internal class Program
 {
-
     static async Task Main(string[] args)
     {
         var ets6Factory = new Ets6Factory();

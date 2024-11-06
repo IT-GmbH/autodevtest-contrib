@@ -2,14 +2,15 @@ using System;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace etsdevtest.cli;
 
 public class IndividualAddressArgument : Argument<ushort>
 {
-    public IndividualAddressArgument() : base(
+    public IndividualAddressArgument(string description = "Individual address in the format x.x.x", bool aDefault = false) : base(
         name: "ia",
-        description: "Individual address in the format x.x.x",
+        description: description,
         parse: result =>
         {
             if (result.Tokens.SingleOrDefault() is Token token)
@@ -29,11 +30,11 @@ public class IndividualAddressArgument : Argument<ushort>
                     throw new ArgumentOutOfRangeException("Values must be within the range: x (0-15), y (0-15), z (0-255)");
                 }
 
-                return (ushort)((x << 12) | (y << 8) | z);;
+                return (ushort)((x << 12) | (y << 8) | z);
             }
             return 0x0000;
         },
-        isDefault: true
+        isDefault: aDefault
     )
     { }
 }

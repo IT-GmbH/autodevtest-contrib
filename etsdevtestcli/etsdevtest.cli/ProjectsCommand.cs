@@ -30,14 +30,26 @@ class ProjectCommand : Command
         public OpenCommand(AppInstance aAppInstance, IConfig aConfig) : base("open", "Open the provided project")
         {
             var projectName = StartCommand.GetProjectArg(aConfig);
+            var optPassword = new Option<string>(["-p", "--password"], () => null, "project password");
+            var optForce = new Option<bool>(["-f", "--force"], () => false, "force open new project");
             this.Add(projectName);
-            this.SetHandler(aAppInstance.Open, projectName);
+            this.Add(optPassword);
+            this.Add(optForce);
+            this.SetHandler(aAppInstance.Open, projectName, optPassword, optForce);
+        }
+    }
+
+    class RestartCommand : Command
+    {
+        public RestartCommand(AppInstance aAppInstance) : base("reload", "Exit ETS6 and reopens active project")
+        {
+            this.SetHandler(aAppInstance.Reopen);
         }
     }
 
     class CloseCommmand : Command
     {
-        public CloseCommmand(AppInstance aAppInstance) : base("close", "Close current project, NOT SUPPORTED")
+        public CloseCommmand(AppInstance aAppInstance) : base("close", "Close currently running ETS")
         {
             this.SetHandler(aAppInstance.Close);
         }
@@ -49,5 +61,6 @@ class ProjectCommand : Command
         Add(new StartCommand(aAppInstance, aConfig));
         Add(new OpenCommand(aAppInstance, aConfig));
         Add(new CloseCommmand(aAppInstance));
+        Add(new RestartCommand(aAppInstance));
     }
 }
